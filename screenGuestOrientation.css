@@ -1,0 +1,125 @@
+*
+{
+	font-family: 'Source Sans Pro', Tahoma, Verdana, Geneva, Helvetica, Arial, sans-serif;
+}
+
+html, body 
+{
+	height: 100%;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	border: none;
+ }
+	
+.tableau
+{
+	display:inline-block;
+	height: 100%;
+	width: 85%;
+	color: #000000;
+	background-color: #5e8894;
+	text-align: left;
+	position: relative;
+	border-left:  9px solid #0a3c41;
+	position:relative;
+	left:15%;
+	display:table;
+}
+
+.leftBorder
+{
+	position:absolute;
+	top:0px;
+	left:0px;
+	width: 15%;
+	height:100%;
+	display: inline;
+	border-right:  1% solid #0a3c41;
+}
+
+.logo
+{
+	background-color: #FFFFFF;
+	text-align:center;
+	margin-bottom:20%;
+}
+ 
+ #title
+ {
+	padding-left:4%;
+	color: #ffffff;
+	text-align:left;
+ }
+
+#hourPanel
+{
+	text-align:center;
+	width:100%;
+	padding-top:5%;
+	padding-bottom:5%;
+ }
+
+.ligne0, .ligne1, .ligne2 
+{
+	color: #ffffff;
+	border-style: hidden;
+	font-weight:bold;
+	padding-top:1%;
+	padding-bottom:1%;
+	width:100%;
+}
+
+.ligne0
+{
+	color: #ffffff;
+}
+
+.ligne1
+{
+	background-color: #FFFFFF;
+	color: #5e8894;
+}
+.ligne2
+{
+	background-color: #aec2c9;
+	color: #32464d;
+}
+
+.heure
+ {
+	text-align:center;
+ }
+ 
+ .organisateur, .salle
+ {
+	padding-left:5%;
+ }
+ 
+.date
+  {
+  	font-weight: bold;
+  }
+  
+.time
+ {
+	color: #5e8894;
+	background-color: #eff3f4;
+	font-weight: bolder;
+ }
+  
+ .commence
+ {
+ 
+ }
+
+ .noRes
+{
+	background-color: #FFFFFF;
+	text-align: center;
+}
+
+.debut
+{
+	text-align : center;
+}

@@ -1,0 +1,42 @@
+<html>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<head>
+		<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,900,300' rel='stylesheet' type='text/css'>
+		<link rel="stylesheet" href="screenGuestOrientation.css">
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/jquery-ui.min.js"></script>
+		<script type="text/javascript" src="screenGuestOrientation.js"></script>
+		<title> Affichage des reservations en lecture seule  </title>
+	</head>
+	<body onload="showTime(); showDate();">
+		<div class="leftBorder">
+		<div class="logo"><img src="logo.jpeg" alt="logo" width="100%"></div>
+		<div id="hourPanel" class="time"></div>
+		</div>
+		
+		<table cellspacing="0" cellpadding="0" class="tableau">
+			<thead width="100%">
+				<tr height="15%">
+					<td colspan="4"><div id="title"><div></td>
+				</tr>
+			</thead>
+			<tbody width="100%">
+				<tr vAlign="left" class="ligne0" id="entete">
+					<td width="10%" class="heure">Début</td>
+					<td width="35%" class="organisateur">Organisateur</td>
+					<td class="salle">Salle</td>
+					<td width="15%"></td>
+				</tr>
+			</tbody>
+		</table>
+	
+			<script> 
+
+			setIdentification('hanae', 'hanae');
+			$(document).ready(function() {
+				initDocument();
+			});
+
+			</script>
+	</body>
+</html>
