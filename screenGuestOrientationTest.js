@@ -189,7 +189,7 @@ function getUrbaJson(){
 }
 	
 function fillNewJson(objJson){
-	var intervalInMin="120";
+	var intervalInMin=getTimeInterval();
 	intervalInMin=parseInt(intervalInMin, 10);
 	interval=""+Math.floor(intervalInMin/60)+":"+intervalInMin%60;
 	try {
@@ -230,11 +230,29 @@ function sortNewJson(jsonToSort, prop) {
 	displayNewJson(jsonToSort);
 }
 
+function getTimeInterval(){//permet de récupérer l'intervalle de temps pendant lequel les réservations suivantes peuvent commencer
+	var query= document.location.search;
+	var tmp1;
+	var tmp=[];
+	if (query!=""){
+		tmp1= query.split("?");
+		tmp=tmp1[1].split("=");
+			if (tmp.lenght!=0){
+				if(tmp[0]=="timeNextBookings"){
+				var timeNextBookings= tmp[1];
+				return timeNextBookings;
+				}
+			}
+			else return 120;
+	}
+	else return 120;
+}
+
 function displayNewJson(SortedJson){
 	var ligne=0;
 	var items = [];
 	ecranEnLecture.nbDisplayedRes=8;//nombre de réservations à montrer "par page"
-	ecranEnLecture.nbResToShow=8;//nombre de réservations à rafraichir (quand ces deux nombres sont égaux, on rafraichit les reservations page par page)
+	ecranEnLecture.nbResToShow=8;//nombre de réservations à rafraîchir (quand ces deux nombres sont égaux, on rafraîchit les reservations page par page)
 	var today= new Date();
 	now=getTime();
 	$('.refresh').remove(); // on réinitialise la page (toutes les réservations précédentes sont supprimées afain de ne pas avoir de doublons)
@@ -277,7 +295,6 @@ function displayNewJson(SortedJson){
 //--------------il doit y avoir une erreur dans le paragraphe suivant:
 		var l=ligne%ecranEnLecture.nbDisplayedRes;
 		if (!l==0) {//on rajoute un certain nombre de lignes vides afin d'obtenir des pages complètes
-			console.log(ligne+";"+ecranEnLecture.nbDisplayedRes+";"+l);
 			do {
 			items.push('<td colspan="4">&nbsp;</td>');
 			$('<tr>', {
