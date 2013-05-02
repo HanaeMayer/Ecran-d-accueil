@@ -307,22 +307,22 @@ function displayNewJson(SortedJson){
 	}
 }
 
-function nextPage(page, nbLignes, nbPagesTotal) {
+function nextPage(page, nbLignes, nbPagesTotal) {// fonction qui "tourne la page"
 
-	$.fn.animateHighlight = function(highlightColor, duration) {
+	$.fn.animateHighlight = function(highlightColor, duration) {//la super fonction qui fait un flash coloré
 		var highlightBg = highlightColor || "#FFFF9C";
 		var animateMs = duration || 1500;
 		var originalBg = this.css("backgroundColor");
 		this.stop().css("background-color", highlightBg).animate({backgroundColor: originalBg}, animateMs);
 	};
-
+//on définit les lignes qui appartiennent à cette page
 	var intervalStart=(page-1)*ecranEnLecture.nbDisplayedRes;
 	var intervalEnd=page*ecranEnLecture.nbDisplayedRes-1;
 	
-	$(".refresh").hide(0);
-	for (i=intervalStart;i<=intervalEnd;i++) {
+	$(".refresh").hide(0);//on cache toutes les lignes - sans exception (ça prend moins de temps)
+	for (i=intervalStart;i<=intervalEnd;i++) {//on montre toutes les lignes qui appartiennent à la page que l'on veut montrer
 		$('#'+i).show(0);
-		$('#'+i).animateHighlight('#ffa500',1000);	
+		$('#'+i).animateHighlight('#ffa500',1000);
 	}
 }
 
@@ -334,8 +334,8 @@ function showFirstPage() {
 		this.stop().css("background-color", highlightBg).animate({backgroundColor: originalBg}, animateMs);
 	};
 
-	$(".refresh").hide(0);
-	for (i=0;i<ecranEnLecture.nbDisplayedRes;i++) {
+	$(".refresh").hide(0);//on cache toutes les lignes
+	for (i=0;i<ecranEnLecture.nbDisplayedRes;i++) {//on montre les premières
 		$('#'+i).show(0);
 			$('#'+i).animateHighlight('#ffa500',1000);	
 	}
