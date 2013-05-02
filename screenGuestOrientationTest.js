@@ -222,13 +222,13 @@ function sortNewJson(jsonToSort, prop) {
 function displayNewJson(SortedJson){
 	var ligne=0;
 	var items = [];
-	ecranEnLecture.nbDisplayedRes=8;
-	ecranEnLecture.nbResToShow=8;
+	ecranEnLecture.nbDisplayedRes=8;//nombre de réservations à montrer "par page"
+	ecranEnLecture.nbResToShow=8;//nombre de réservations à rafraichir (quand ces deux nombres sont égaux, on rafraichit les reservations page par page)
 	var today= new Date();
 	now=getTime();
-	$('.refresh').remove();
-	$('#entete').show();
-	$.each(SortedJson, function(key, value) {
+	$('.refresh').remove(); // on réinitialise la page (toutes les réservations précédentes sont supprimées afain de ne pas avoir de doublons)
+	$('#entete').show(); // on remet l'entête (au cas où elle aurait été cachée quand il n'y a pas de réservation)
+	$.each(SortedJson, function(key, value) {// pour chaque élément du json, on ajoute une ligne sur la page
 		if (ligne%2==0) p=1;
 		if (ligne%2==1) p=2;
 		var h=(SortedJson[ligne].heuresDeResa).split(":");
@@ -249,7 +249,7 @@ function displayNewJson(SortedJson){
 	
 	refresh=false;
 	
-	if (ligne==0) {
+	if (ligne==0) {// s'il n'y a pas de réservation, on cache l'entête et on affiche une ligne indiquant qu'il n'y a pas de réservation
 		$('#entete').hide();
 		items.push('<td colspan="4" class="noRes">Aucune réservation prévue pour l\'instant</td>');
 		for (i=1; i<ecranEnLecture.nbDisplayedRes; i++) {
@@ -262,9 +262,9 @@ function displayNewJson(SortedJson){
 		   items.length = 0;
 		   setTimeout("refreshScreen();", 300000)
 	}
-	else {
-	
-		if (!ligne%ecranEnLecture.nbDisplayedRes==0) {
+	else {// s'il y a des réservations
+//--------------il doit y avoir une erreur dans le paragraphe suivant:
+		if (!ligne%ecranEnLecture.nbDisplayedRes==0) {//on rajoute un certain nombre de lignes vides afin d'obtenir des pages complètes
 			do {
 			items.push('<td colspan="4">&nbsp;</td>');
 			$('<tr>', {
@@ -278,24 +278,26 @@ function displayNewJson(SortedJson){
 			}while (!l==0)
 		}
 		
-		var nbCycles=5;
+		var nbCycles=5;// nombre complètement arbitraire de cycles de rafraichissement
 	
-		if (ligne>ecranEnLecture.nbDisplayedRes){
-			for (i=ecranEnLecture.nbDisplayedRes; i<ligne; i++) {
+		if (ligne>ecranEnLecture.nbDisplayedRes){// s'il y a plus d'une page
+			for (i=ecranEnLecture.nbDisplayedRes; i<ligne; i++) {//on cache toutes les lignes des pages suivantes
 				$('#'+i).hide(0);
 			}
 			var nbPages=Math.ceil(ligne/ecranEnLecture.nbDisplayedRes);
 			var k=2;
-			var interval = setInterval(function(){
-				if (k<=nbPages){
+			var interval = setInterval(function(){//toutes les 10s (toujours complètement arbitraire)
+				if (k<=nbPages){// s'il y a toujours des pages à afficher, on passe à la suivante
 					nextPage(k, ligne);
 					k++;
 				}
-				else {
-					showFirstPage();
-					k=2;
-					nbCycles--;
-					if (nbCycles==0) {
+				else {// sinon on repasse à la première page
+					if (nbCycle>0) {
+						showFirstPage();
+						k=2;
+						nbCycles--;
+					}
+					else if (nbCycles==0) {// si on a fait tous les cycles, on rafraichit tout
 						clearInterval(interval);
 						refreshScreen();
 					}
