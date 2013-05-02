@@ -242,17 +242,38 @@ function getTimeInterval(){//permet de récupérer l'intervalle de temps pendant
 				var timeNextBookings= tmp[1];
 				return timeNextBookings;
 				}
+				else return 120;
 			}
 			else return 120;
 	}
 	else return 120;
 }
 
+function getnbLinesToUpdate(){//permet de récupérer l'intervalle de temps pendant lequel les réservations suivantes peuvent commencer
+	var query= document.location.search;
+	var tmp1;
+	var tmp=[];
+	if (query!=""){
+		tmp1= query.split("?");
+		tmp=tmp1[1].split("=");
+			if (tmp.lenght!=0){
+				if(tmp[0]=="nbLinesToUpdate"){
+				var nbLinesToUpdate= tmp[1];
+				return nbLinesToUpdate;
+				}
+				else return "";
+			}
+			else return "";
+	}
+	else return "";
+}
+
 function displayNewJson(SortedJson){
 	var ligne=0;
 	var items = [];
 	ecranEnLecture.nbDisplayedRes=8;//nombre de réservations à montrer "par page"
-	ecranEnLecture.nbResToShow=8;//nombre de réservations à rafraîchir (quand ces deux nombres sont égaux, on rafraîchit les reservations page par page)
+	ecranEnLecture.nbResToShow=getnbLinesToUpdate();//nombre de réservations à rafraîchir (quand ces deux nombres sont égaux, on rafraîchit les reservations page par page)
+	if ((ecranEnLecture.nbResToShow=="")||(ecranEnLecture.nbResToShow>ecranEnLecture.nbDisplayedRes)) ecranEnLecture.nbResToShow=ecranEnLecture.nbDisplayedRes;
 	var today= new Date();
 	now=getTime();
 	$('.refresh').remove(); // on réinitialise la page (toutes les réservations précédentes sont supprimées afain de ne pas avoir de doublons)
@@ -293,7 +314,7 @@ function displayNewJson(SortedJson){
 	}
 	else {// s'il y a des réservations
 //--------------il doit y avoir une erreur dans le paragraphe suivant:
-		var l=ligne%ecranEnLecture.nbDisplayedRes;
+		var l=(ligne-ecranEnLecture.nbDisplayedRes)%ecranEnLecture.nbResToShow;
 		if (!l==0) {//on rajoute un certain nombre de lignes vides afin d'obtenir des pages complètes
 			do {
 			items.push('<td colspan="4">&nbsp;</td>');
@@ -304,7 +325,7 @@ function displayNewJson(SortedJson){
 			   }).appendTo('table');
 			   items.length = 0;
 			   ligne++;
-			   l=ligne%ecranEnLecture.nbDisplayedRes;
+			   l=(ligne-ecranEnLecture.nbDisplayedRes)%ecranEnLecture.nbResToShow;
 			}while (!l==0)
 		}
 		
@@ -314,17 +335,20 @@ function displayNewJson(SortedJson){
 			for (i=ecranEnLecture.nbDisplayedRes; i<ligne; i++) {//on cache toutes les lignes des pages suivantes
 				$('#'+i).hide(0);
 			}
-			var nbPages=Math.ceil(ligne/ecranEnLecture.nbDisplayedRes);
-			var k=2;
+			var nbRefreshToShowAll=Math.ceil((ligne-ecranEnLecture.nbDisplayedRes)/ecranEnLecture.nbResToShow);
+			console.log(nbRefreshToShowAll);
+			var k=1;
 			var interval = setInterval(function(){//toutes les 10s (toujours complètement arbitraire)
-				if (k<=nbPages){// s'il y a toujours des pages à afficher, on passe à la suivante
-					nextPage(k, ligne);
+				if (k<=nbRefreshToShowAll){// s'il y a toujours des pages à afficher, on passe à la suivante
+					console.log("nextRes");
+					nextRes(k, ligne);
 					k++;
 				}
 				else {// sinon on repasse à la première page
-					if (nbCycle>0) {
+					if (nbCycles>0) {
+						console.log("showfirst");
 						showFirstPage();
-						k=2;
+						k=1;
 						nbCycles--;
 					}
 					else if (nbCycles==0) {// si on a fait tous les cycles, on rafraichit tout
@@ -332,12 +356,12 @@ function displayNewJson(SortedJson){
 						refreshScreen();
 					}
 				}
-			}, 10000);
+			}, 5000);
 		}
 	}
 }
 
-function nextPage(page, nbLignes, nbPagesTotal) {// fonction qui "tourne la page"
+function nextRes(iteration, nbLignes) {// fonction qui "tourne la page"
 
 	$.fn.animateHighlight = function(highlightColor, duration) {//la super fonction qui fait un flash coloré
 		var highlightBg = highlightColor || "#FFFF9C";
@@ -346,11 +370,15 @@ function nextPage(page, nbLignes, nbPagesTotal) {// fonction qui "tourne la page
 		this.stop().css("background-color", highlightBg).animate({backgroundColor: originalBg}, animateMs);
 	};
 //on définit les lignes qui appartiennent à cette page
-	var intervalStart=(page-1)*ecranEnLecture.nbDisplayedRes;
-	var intervalEnd=page*ecranEnLecture.nbDisplayedRes-1;
+	var intervalStart=iteration*ecranEnLecture.nbResToShow;
+	var intervalEnd=(iteration*ecranEnLecture.nbResToShow)+ecranEnLecture.nbDisplayedRes;
+	var previousEnd=((iteration-1)*ecranEnLecture.nbResToShow)+ecranEnLecture.nbDisplayedRes;
 	
-	$(".refresh").hide(0);//on cache toutes les lignes - sans exception (ça prend moins de temps)
-	for (i=intervalStart;i<=intervalEnd;i++) {//on montre toutes les lignes qui appartiennent à la page que l'on veut montrer
+	//$(".refresh").hide(0);//on cache toutes les lignes - sans exception (ça prend moins de temps)
+	for (i=0;i<intervalStart;i++) {//on montre toutes les lignes qui appartiennent à la page que l'on veut montrer
+		$('#'+i).hide(0);
+	}
+	for (i=previousEnd;i<intervalEnd;i++) {//on montre toutes les lignes qui appartiennent à la page que l'on veut montrer
 		$('#'+i).show(0);
 		$('#'+i).animateHighlight('#ffa500',1000);
 	}
