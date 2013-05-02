@@ -71,13 +71,20 @@ function compareTime(time, ref) {
 	
 }
 		  
-function intervalleOfTime(time, ref) {// dit si l'heure de début d'une résa est dans max 3 heures
-	var r = ref.split(":"); 
-	var t=time.split(":");
-	if ((parseInt(t[0],10)-parseInt(r[0],10))<=2) 
-		return true;
-	else
-		return false;
+function substractTime(t1, t2) {
+	var time1=[];
+	var time2=[];
+	var time1=t1.split(":");
+	var time2=t2.split(":");
+	
+	var minutes1=60*parseInt(time1[0],10)+parseInt(time1[1],10);
+	var minutes2=60*parseInt(time2[0],10)+parseInt(time2[1],10);
+	
+	var minutes3=minutes1-minutes2;
+	var min=minutes3%60;
+	if (min<10) min="0"+min;
+	var duree=Math.floor(minutes3/60)+":"+min;
+	return duree;
 }
 
 function setDateOnUrbaFormat(d){
@@ -182,6 +189,9 @@ function getUrbaJson(){
 }
 	
 function fillNewJson(objJson){
+	var intervalInMin="120";
+	intervalInMin=parseInt(intervalInMin, 10);
+	interval=""+Math.floor(intervalInMin/60)+":"+intervalInMin%60;
 	try {
 		var j=0;
 		var newJson = [];
@@ -192,7 +202,8 @@ function fillNewJson(objJson){
 		$.each(objJson, function(key, value) {
 			stH=getTimeFromUrbaFormat(value.startDate);
 			endH=getTimeFromUrbaFormat(value.endDate);
-			if (compareTime(endH,now) && intervalleOfTime(stH,now)) {// formation d'un nouveau JSON
+			var startMinusInterval=substractTime(stH, interval);
+			if (compareTime(endH,now) && compareTime(now,startMinusInterval)) {// formation d'un nouveau JSON
 				newJson[j] = {"heuresDeResa": stH, "organisateurs": value.fields[0].value, "salles": value.resource.displayName};
 				j=j+1;
 			}
@@ -264,7 +275,9 @@ function displayNewJson(SortedJson){
 	}
 	else {// s'il y a des réservations
 //--------------il doit y avoir une erreur dans le paragraphe suivant:
-		if (!ligne%ecranEnLecture.nbDisplayedRes==0) {//on rajoute un certain nombre de lignes vides afin d'obtenir des pages complètes
+		var l=ligne%ecranEnLecture.nbDisplayedRes;
+		if (!l==0) {//on rajoute un certain nombre de lignes vides afin d'obtenir des pages complètes
+			console.log(ligne+";"+ecranEnLecture.nbDisplayedRes+";"+l);
 			do {
 			items.push('<td colspan="4">&nbsp;</td>');
 			$('<tr>', {
