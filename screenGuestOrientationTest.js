@@ -232,38 +232,64 @@ function sortNewJson(jsonToSort, prop) {
 
 function getTimeInterval(){//permet de récupérer l'intervalle de temps pendant lequel les réservations suivantes peuvent commencer
 	var query= document.location.search;
-	var tmp1;
+	var tmp1=[];
 	var tmp=[];
-	if (query!=""){
+	if (query.indexOf("?")>=0){
 		tmp1= query.split("?");
-		tmp=tmp1[1].split("=");
-			if (tmp.lenght!=0){
-				if(tmp[0]=="timeNextBookings"){
+		if (tmp1[1].indexOf("&")>=0){
+			tmp=tmp1[1].split("&");
+			var timeInt=false;
+			for (i=0;i<tmp.length;i++) {
+				var t=[];
+				t=tmp[i].split("=");
+				if(t[0]=="timeNextBookings"){
+					var timeNextBookings= t[1];
+					timeInt=true;
+					return timeNextBookings;
+				}
+			}
+			if (!timeInt) return 120;
+		}
+		else {
+			tmp=tmp1[1].split("=");
+			if(tmp[0]=="timeNextBookings"){
 				var timeNextBookings= tmp[1];
 				return timeNextBookings;
-				}
-				else return 120;
 			}
 			else return 120;
+		}
 	}
 	else return 120;
 }
 
 function getnbLinesToUpdate(){//permet de récupérer l'intervalle de temps pendant lequel les réservations suivantes peuvent commencer
 	var query= document.location.search;
-	var tmp1;
+	var tmp1=[];
 	var tmp=[];
-	if (query!=""){
+	if (query.indexOf("?")>=0){
 		tmp1= query.split("?");
-		tmp=tmp1[1].split("=");
-			if (tmp.lenght!=0){
-				if(tmp[0]=="nbLinesToUpdate"){
+		if (tmp1[1].indexOf("&")>=0){
+			tmp=tmp1[1].split("&");
+			var nbLineUp=false;
+			for (i=0;i<tmp.length;i++) {
+				var t=[];
+				t=tmp[i].split("=");
+				if(t[0]=="nbLinesToUpdate"){
+					var nbLinesToUpdate= t[1];
+					nbLineUp=true;
+					return nbLinesToUpdate;
+				}
+			}
+			if (!nbLineUp) return "";
+		}
+		else {
+			tmp=tmp1[1].split("=");
+			if(tmp[0]=="nbLinesToUpdate"){
 				var nbLinesToUpdate= tmp[1];
 				return nbLinesToUpdate;
-				}
-				else return "";
 			}
 			else return "";
+		}
 	}
 	else return "";
 }
