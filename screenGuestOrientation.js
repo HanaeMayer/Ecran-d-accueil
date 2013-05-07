@@ -71,13 +71,20 @@ function compareTime(time, ref) {
 	
 }
 		  
-function intervalleOfTime(time, ref) {// dit si l'heure de début d'une résa est dans max 3 heures
-	var r = ref.split(":"); 
-	var t=time.split(":");
-	if ((parseInt(t[0],10)-parseInt(r[0],10))<=2) 
-		return true;
-	else
-		return false;
+function substractTime(t1, t2) {
+	var time1=[];
+	var time2=[];
+	var time1=t1.split(":");
+	var time2=t2.split(":");
+	
+	var minutes1=60*parseInt(time1[0],10)+parseInt(time1[1],10);
+	var minutes2=60*parseInt(time2[0],10)+parseInt(time2[1],10);
+	
+	var minutes3=minutes1-minutes2;
+	var min=minutes3%60;
+	if (min<10) min="0"+min;
+	var duree=Math.floor(minutes3/60)+":"+min;
+	return duree;
 }
 
 function setDateOnUrbaFormat(d){
@@ -95,14 +102,20 @@ function getTimeFromUrbaFormat(date){// extrait l'heure dans une date au format 
 
 function initDocument(){
 	var i=0;
+	showDate();
+	showTime();
 	var w=$(window).width();
 	var h=$(window).height();
+	$("#entete").css("height",((h-25*h/100)/10)+"px");
+	$(".refresh").css("height",((h-25*h/100)/10)+"px");
 	$("#hourPanel").css("font-size",((w*h/1000000)+2)+"em");
 	$(".tableau").css("font-size",((w*h/1000000)+1)+"em");
 	$("#title").css("font-size",((w*h/1000000)+1)+"em");
 	$(window).resize(function(){
 		var w=$(window).width();
 		var h=$(window).height();
+		$("#entete").css("height",((h-25*h/100)/10)+"px");
+		$(".refresh").css("height",((h-25*h/100)/10)+"px");
 		$("#hourPanel").css("font-size",((w*h/1000000)+2)+"em");
 		$(".tableau").css("font-size",((w*h/1000000)+1)+"em");
 		$("#title").css("font-size",((w*h/1000000)+1)+"em");
@@ -178,6 +191,9 @@ function getUrbaJson(){
 }
 	
 function fillNewJson(objJson){
+	var intervalInMin=getTimeInterval();
+	intervalInMin=parseInt(intervalInMin, 10);
+	interval=""+Math.floor(intervalInMin/60)+":"+intervalInMin%60;
 	try {
 		var j=0;
 		var newJson = [];
@@ -188,7 +204,8 @@ function fillNewJson(objJson){
 		$.each(objJson, function(key, value) {
 			stH=getTimeFromUrbaFormat(value.startDate);
 			endH=getTimeFromUrbaFormat(value.endDate);
-			if (compareTime(endH,now) && intervalleOfTime(stH,now)) {// formation d'un nouveau JSON
+			var startMinusInterval=substractTime(stH, interval);
+			if (compareTime(endH,now) && compareTime(now,startMinusInterval)) {// formation d'un nouveau JSON
 				newJson[j] = {"heuresDeResa": stH, "organisateurs": value.fields[0].value, "salles": value.resource.displayName};
 				j=j+1;
 			}
@@ -215,15 +232,81 @@ function sortNewJson(jsonToSort, prop) {
 	displayNewJson(jsonToSort);
 }
 
+function getTimeInterval(){//permet de récupérer l'intervalle de temps pendant lequel les réservations suivantes peuvent commencer
+	var query= document.location.search;
+	var tmp1=[];
+	var tmp=[];
+	if (query.indexOf("?")>=0){
+		tmp1= query.split("?");
+		if (tmp1[1].indexOf("&")>=0){
+			tmp=tmp1[1].split("&");
+			var timeInt=false;
+			for (i=0;i<tmp.length;i++) {
+				var t=[];
+				t=tmp[i].split("=");
+				if(t[0]=="timeNextBookings"){
+					var timeNextBookings= t[1];
+					timeInt=true;
+					return timeNextBookings;
+				}
+			}
+			if (!timeInt) return 120;
+		}
+		else {
+			tmp=tmp1[1].split("=");
+			if(tmp[0]=="timeNextBookings"){
+				var timeNextBookings= tmp[1];
+				return timeNextBookings;
+			}
+			else return 120;
+		}
+	}
+	else return 120;
+}
+
+function getnbLinesToUpdate(){//permet de récupérer l'intervalle de temps pendant lequel les réservations suivantes peuvent commencer
+	var query= document.location.search;
+	var tmp1=[];
+	var tmp=[];
+	if (query.indexOf("?")>=0){
+		tmp1= query.split("?");
+		if (tmp1[1].indexOf("&")>=0){
+			tmp=tmp1[1].split("&");
+			var nbLineUp=false;
+			for (i=0;i<tmp.length;i++) {
+				var t=[];
+				t=tmp[i].split("=");
+				if(t[0]=="nbLinesToUpdate"){
+					var nbLinesToUpdate= t[1];
+					nbLineUp=true;
+					return nbLinesToUpdate;
+				}
+			}
+			if (!nbLineUp) return "";
+		}
+		else {
+			tmp=tmp1[1].split("=");
+			if(tmp[0]=="nbLinesToUpdate"){
+				var nbLinesToUpdate= tmp[1];
+				return nbLinesToUpdate;
+			}
+			else return "";
+		}
+	}
+	else return "";
+}
+
 function displayNewJson(SortedJson){
 	var ligne=0;
 	var items = [];
-	ecranEnLecture.nbDisplayedRooms=8;
+	ecranEnLecture.nbDisplayedRes=8;//nombre de réservations à montrer "par page"
+	ecranEnLecture.nbResToShow=getnbLinesToUpdate();//nombre de réservations à rafraîchir (quand ces deux nombres sont égaux, on rafraîchit les reservations page par page)
+	if ((ecranEnLecture.nbResToShow=="")||(ecranEnLecture.nbResToShow>ecranEnLecture.nbDisplayedRes)) ecranEnLecture.nbResToShow=ecranEnLecture.nbDisplayedRes;
 	var today= new Date();
 	now=getTime();
-	$('.refresh').remove();
-	$('#entete').show();
-	$.each(SortedJson, function(key, value) {
+	$('.refresh').remove(); // on réinitialise la page (toutes les réservations précédentes sont supprimées afain de ne pas avoir de doublons)
+	$('#entete').show(); // on remet l'entête (au cas où elle aurait été cachée quand il n'y a pas de réservation)
+	$.each(SortedJson, function(key, value) {// pour chaque élément du json, on ajoute une ligne sur la page
 		if (ligne%2==0) p=1;
 		if (ligne%2==1) p=2;
 		var h=(SortedJson[ligne].heuresDeResa).split(":");
@@ -239,14 +322,17 @@ function displayNewJson(SortedJson){
 		   }).appendTo('table');
 		   items.length = 0;
 		   ligne++;
-		});
+
+	});
 	
 	refresh=false;
 	
-	if (ligne==0) {
+	if (ligne==0) {// s'il n'y a pas de réservation, on cache l'entête et on affiche une ligne indiquant qu'il n'y a pas de réservation
 		$('#entete').hide();
 		items.push('<td colspan="4" class="noRes">Aucune réservation prévue pour l\'instant</td>');
-		ligne=1;		
+		for (i=1; i<ecranEnLecture.nbDisplayedRes; i++) {
+			items.push('<td colspan="4">&nbsp;</td>');
+		}		
 		$('<tr>', {
 		   'class': 'ligne1 refresh',
 		   html: items.join('')
@@ -254,90 +340,89 @@ function displayNewJson(SortedJson){
 		   items.length = 0;
 		   setTimeout("refreshScreen();", 300000)
 	}
-
-	if (ligne<=ecranEnLecture.nbDisplayedRooms){
-		for (i=ligne; i<ecranEnLecture.nbDisplayedRooms; i++) {
-		items.push('<td colspan="4">&nbsp;</td>');
-		$('<tr>', {
-		   'class': 'ligne1 refresh',
-		   html: items.join('')
-		   }).appendTo('table');
-		   items.length = 0;
+	else {// s'il y a des réservations
+//--------------il doit y avoir une erreur dans le paragraphe suivant:
+		var l=(ligne-ecranEnLecture.nbDisplayedRes)%ecranEnLecture.nbResToShow;
+		if (!l==0) {//on rajoute un certain nombre de lignes vides afin d'obtenir des pages complètes
+			do {
+			items.push('<td colspan="4">&nbsp;</td>');
+			$('<tr>', {
+			   'class': 'ligne1 refresh',
+			   'id': ligne,
+			   html: items.join('')
+			   }).appendTo('table');
+			   items.length = 0;
+			   ligne++;
+			   l=(ligne-ecranEnLecture.nbDisplayedRes)%ecranEnLecture.nbResToShow;
+			}while (!l==0)
 		}
-		setTimeout("refreshScreen();", 300000);
-	}
-	else if(ligne>ecranEnLecture.nbDisplayedRooms){
-		var nbCycles=Math.round(150/(5*(ligne-ecranEnLecture.nbDisplayedRooms)));
-		showFirstHideNext(ligne, nbCycles);
-	}
-}
-
-function showFirstHideNext(nbLine, nbCycles) {
-		var nbLigneSup=0;
-		var l=nbLine;
-		var c=nbCycles;
 		
-		alert('test');
-		
-		$.fn.animateHighlight = function(highlightColor, duration) {
-			var highlightBg = highlightColor || "#FFFF9C";
-			var animateMs = duration || 1500;
-			var originalBg = this.css("backgroundColor");
-			this.stop().css("background-color", highlightBg).animate({backgroundColor: originalBg}, animateMs);
-		};
-		
-		if (c>0) {
-			for (i=0;i<(nbLine);i++){
-				if(i<ecranEnLecture.nbDisplayedRooms) {
-					$('#'+i).show(); 
-					$('#'+i).animateHighlight('#5e8894',1000);
-					}
-				else {$('#'+i).hide();nbLigneSup++;}
-			}
-			c--;
-			hideFirstShowNext(nbLigneSup, l, c);
-		}
-		else refreshScreen()
-}
-
-function hideFirstShowNext(nbHiddenLine, nbLine, nbCycles) {
-	var i=0;
-	var l=nbLine;
-	var nbPage=Math.ceil(nbHiddenLine/ecranEnLecture.nbDisplayedRooms);
-	var c=nbCycles;
+		var nbCycles=5;// nombre complètement arbitraire de cycles de rafraichissement
 	
+		if (ligne>ecranEnLecture.nbDisplayedRes){// s'il y a plus d'une page
+			for (i=ecranEnLecture.nbDisplayedRes; i<ligne; i++) {//on cache toutes les lignes des pages suivantes
+				$('#'+i).hide(0);
+			}
+			var nbRefreshToShowAll=Math.ceil((ligne-ecranEnLecture.nbDisplayedRes)/ecranEnLecture.nbResToShow);
+			console.log(nbRefreshToShowAll);
+			var k=1;
+			var interval = setInterval(function(){//toutes les 10s (toujours complètement arbitraire)
+				if (k<=nbRefreshToShowAll){// s'il y a toujours des pages à afficher, on passe à la suivante
+					console.log("nextRes");
+					nextRes(k, ligne);
+					k++;
+				}
+				else {// sinon on repasse à la première page
+					if (nbCycles>0) {
+						console.log("showfirst");
+						showFirstPage();
+						k=1;
+						nbCycles--;
+					}
+					else if (nbCycles==0) {// si on a fait tous les cycles, on rafraichit tout
+						clearInterval(interval);
+						refreshScreen();
+					}
+				}
+			}, 5000);
+		}
+	}
+}
+
+function nextRes(iteration) {// fonction qui "tourne la page"
+
+	$.fn.animateHighlight = function(highlightColor, duration) {//la super fonction qui fait un flash coloré
+		var highlightBg = highlightColor || "#FFFF9C";
+		var animateMs = duration || 1500;
+		var originalBg = this.css("backgroundColor");
+		this.stop().css("background-color", highlightBg).animate({backgroundColor: originalBg}, animateMs);
+	};
+//on définit les lignes qui appartiennent à cette page
+	var intervalStart=iteration*ecranEnLecture.nbResToShow;
+	var intervalEnd=(iteration*ecranEnLecture.nbResToShow)+ecranEnLecture.nbDisplayedRes;
+	var previousEnd=((iteration-1)*ecranEnLecture.nbResToShow)+ecranEnLecture.nbDisplayedRes;
+	
+	//$(".refresh").hide(0);//on cache toutes les lignes - sans exception (ça prend moins de temps)
+	for (i=0;i<intervalStart;i++) {//on montre toutes les lignes qui appartiennent à la page que l'on veut montrer
+		$('#'+i).hide(0);
+	}
+	for (i=previousEnd;i<intervalEnd;i++) {//on montre toutes les lignes qui appartiennent à la page que l'on veut montrer
+		$('#'+i).show(0);
+		$('#'+i).animateHighlight('#ffa500',1000);
+	}
+}
+
+function showFirstPage() {
 	$.fn.animateHighlight = function(highlightColor, duration) {
 		var highlightBg = highlightColor || "#FFFF9C";
 		var animateMs = duration || 1500;
 		var originalBg = this.css("backgroundColor");
 		this.stop().css("background-color", highlightBg).animate({backgroundColor: originalBg}, animateMs);
 	};
-	
-	var interval = setInterval(function(){
-		if (nbPage>1){
-			for (i=0;i<ecranEnLecture.nbDisplayedRooms;i++){
-				$('#'+i).hide(300);
-				$('#'+(i+ecranEnLecture.nbDisplayedRooms)).show(0);
-				$('#'+(i+ecranEnLecture.nbDisplayedRooms)).animateHighlight('#ffa500',1000);
-			}
-			nbPage--;
-		}
-		else if (nbPage=1){
-			var lignesRestantes=nbHiddenLine%ecranEnLecture.nbDisplayedRooms;
-			for (i=0;i<ecranEnLecture.nbDisplayedRooms;i++){
-				$('#'+i).hide(300);
-			}
-			for (i=0;i<lignesRestantes;i++) {
-				$('#'+(i+ecranEnLecture.nbDisplayedRooms)).show(0);
-				$('#'+(i+ecranEnLecture.nbDisplayedRooms)).animateHighlight('#ffa500',1000);
-			}
-			alert(nbPage);
-			nbPage--;
-		}
-		else if (nbPage=0){
-			alert(nbPage);
-			showFirstHideNext(l, c);
-			clearInterval(interval);
-		}
-	}, 3000);
+
+	$(".refresh").hide(0);//on cache toutes les lignes
+	for (i=0;i<ecranEnLecture.nbDisplayedRes;i++) {//on montre les premières
+		$('#'+i).show(0);
+			$('#'+i).animateHighlight('#ffa500',1000);	
+	}
 }
